@@ -518,11 +518,20 @@ def serve_react_app(path):
     if path.startswith('api/'):
         return jsonify({'error': 'Not found'}), 404
     
-    # Serve index.html for all routes (React Router will handle routing)
+    # Check if static folder exists
+    if not app.static_folder or not os.path.exists(app.static_folder):
+        return jsonify({'error': 'Frontend not built'}), 503
+    
+    # Serve static files if they exist
     if path != '' and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
     else:
-        return send_from_directory(app.static_folder, 'index.html')
+        # Serve index.html for all routes (React Router will handle routing)
+        index_path = os.path.join(app.static_folder, 'index.html')
+        if os.path.exists(index_path):
+            return send_from_directory(app.static_folder, 'index.html')
+        else:
+            return jsonify({'error': 'Frontend not found'}), 503
 
 
 @app.errorhandler(404)
