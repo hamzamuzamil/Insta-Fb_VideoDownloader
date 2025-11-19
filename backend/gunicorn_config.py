@@ -10,12 +10,16 @@ port = int(os.getenv('PORT', 5000))
 bind = f"0.0.0.0:{port}"
 backlog = 2048
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Worker processes - optimized for Railway (limited resources)
+# Use fewer workers to avoid memory issues
+cpu_count = multiprocessing.cpu_count()
+workers = min(4, max(2, cpu_count))  # 2-4 workers max
 worker_class = 'sync'
 worker_connections = 1000
-timeout = 120
-keepalive = 5
+timeout = 30  # Reduced timeout
+keepalive = 2  # Reduced keepalive
+max_requests = 1000  # Restart workers after N requests to prevent memory leaks
+max_requests_jitter = 50
 
 # Logging
 accesslog = '-'

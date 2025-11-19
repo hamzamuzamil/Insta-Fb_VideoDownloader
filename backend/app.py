@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app with static folder for React build
 static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+# Create static folder if it doesn't exist
+os.makedirs(static_folder, exist_ok=True)
 app = Flask(__name__, static_folder=static_folder, static_url_path='')
 
 # Security configuration
@@ -513,25 +515,31 @@ def health_check():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_react_app(path):
-    """Serve React app for all non-API routes"""
+    """Serve React app for all non-API routes - optimized for performance"""
     # Don't serve React app for API routes
     if path.startswith('api/'):
         return jsonify({'error': 'Not found'}), 404
     
     # Check if static folder exists
     if not app.static_folder or not os.path.exists(app.static_folder):
-        return jsonify({'error': 'Frontend not built'}), 503
+        return jsonify({'error': 'Frontend not built. Please rebuild the application.'}), 503
     
-    # Serve static files if they exist
-    if path != '' and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
+    # Handle static assets (JS, CSS, images, etc.)
+    if path and '.' in path:
+        # It's a file request (has extension)
+        file_path = os.path.join(app.static_folder, path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return send_from_directory(app.static_folder, path)
+    
+    # For all other routes, serve index.html (React Router handles routing)
+    index_path = os.path.join(app.static_folder, 'index.html')
+    if os.path.exists(index_path):
+        return send_from_directory(app.static_folder, 'index.html')
     else:
-        # Serve index.html for all routes (React Router will handle routing)
-        index_path = os.path.join(app.static_folder, 'index.html')
-        if os.path.exists(index_path):
-            return send_from_directory(app.static_folder, 'index.html')
-        else:
-            return jsonify({'error': 'Frontend not found'}), 503
+        return jsonify({
+            'error': 'Frontend not found',
+            'message': 'Please ensure the React app is built and copied to the static folder'
+        }), 503
 
 
 @app.errorhandler(404)

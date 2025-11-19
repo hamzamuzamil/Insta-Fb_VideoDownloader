@@ -27,16 +27,17 @@ COPY backend/ .
 # Copy frontend build to static directory
 COPY --from=frontend-builder /app/frontend/build ./static
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+# Create non-root user (but keep as root for Railway compatibility)
+# Railway handles user permissions, so we'll run as root
+# RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# USER appuser
 
 # Expose port
 EXPOSE 5000
 
-# Health check (using curl instead of requests to avoid extra dependency)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')"
+# Health check - removed for Railway (Railway has its own health checks)
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+#   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')"
 
 # Run with gunicorn
 CMD ["gunicorn", "--config", "gunicorn_config.py", "wsgi:app"]
