@@ -41,6 +41,7 @@ function App() {
     try {
       // Step 1: Validate URL
       setProgress(20);
+      // Use environment variable if set, otherwise use relative path (for Railway)
       const apiUrl = process.env.REACT_APP_API_URL || '';
       const validateResponse = await fetch(`${apiUrl}/api/validate`, {
         method: 'POST',
