@@ -32,7 +32,8 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app with static folder for React build
 static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 # Create static folder if it doesn't exist
-os.makedirs(static_folder, exist_ok=True)
+if not os.path.exists(static_folder):
+    os.makedirs(static_folder, exist_ok=True)
 app = Flask(__name__, static_folder=static_folder, static_url_path='')
 
 # Security configuration
