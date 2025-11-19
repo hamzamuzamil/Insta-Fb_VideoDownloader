@@ -1,0 +1,9 @@
+Flask==3.0.3
+flask-cors==4.0.1
+requests==2.32.3
+Werkzeug==3.0.3
+yt-dlp==2025.11.12
+gunicorn==21.2.0
+python-dotenv==1.0.1
+flask-limiter==3.8.0
+
