@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY backend/ .
 
-# Copy frontend build
+# Copy frontend build to static directory
 COPY --from=frontend-builder /app/frontend/build ./static
 
 # Create non-root user

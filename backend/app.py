@@ -3,7 +3,7 @@ Instagram and Facebook Media Downloader - Backend API
 Handles URL validation, media fetching, and download operations
 """
 
-from flask import Flask, request, jsonify, send_file, after_this_request
+from flask import Flask, request, jsonify, send_file, after_this_request, send_from_directory
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -29,7 +29,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Initialize Flask app with static folder for React build
+static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+app = Flask(__name__, static_folder=static_folder, static_url_path='')
 
 # Security configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(32).hex())
@@ -505,6 +507,22 @@ def health_check():
         'status': 'healthy',
         'service': 'Instagram/Facebook Media Downloader'
     })
+
+
+# Serve React app for all non-API routes
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react_app(path):
+    """Serve React app for all non-API routes"""
+    # Don't serve React app for API routes
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not found'}), 404
+    
+    # Serve index.html for all routes (React Router will handle routing)
+    if path != '' and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 
 @app.errorhandler(404)
