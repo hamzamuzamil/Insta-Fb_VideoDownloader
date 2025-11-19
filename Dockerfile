@@ -3,7 +3,8 @@ FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci --only=production
+# Install all dependencies (including dev) needed for build
+RUN npm install
 COPY frontend/ .
 RUN npm run build
 
@@ -33,9 +34,9 @@ USER appuser
 # Expose port
 EXPOSE 5000
 
-# Health check
+# Health check (using curl instead of requests to avoid extra dependency)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD python -c "import requests; requests.get('http://localhost:5000/api/health')"
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')"
 
 # Run with gunicorn
 CMD ["gunicorn", "--config", "gunicorn_config.py", "wsgi:app"]
